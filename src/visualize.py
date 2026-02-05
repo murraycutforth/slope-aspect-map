@@ -107,6 +107,18 @@ def create_slope_map(slopes: np.ndarray,
     from .classify import slope_to_rgba
     rgba = slope_to_rgba(slopes)
 
+    # Downsample large images for mobile compatibility
+    # Images over ~1500px can cause mobile browser crashes during zoom
+    max_dimension = 1500
+    height, width = rgba.shape[:2]
+    if max(height, width) > max_dimension:
+        scale = max_dimension / max(height, width)
+        new_height = int(height * scale)
+        new_width = int(width * scale)
+        img = Image.fromarray(rgba, mode='RGBA')
+        img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+        rgba = np.array(img)
+
     # Add image overlay
     # Note: ImageOverlay bounds are [[south, west], [north, east]]
     # mercator_project=True reprojects the WGS84 image to Web Mercator to match base tiles
